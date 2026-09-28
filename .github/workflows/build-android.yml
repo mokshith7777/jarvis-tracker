@@ -32,8 +32,21 @@ jobs:
 
       - name: Build Android APK on EAS
         run: |
-          eas build --platform android --profile preview --non-interactive --wait --verbose-logs --json > eas-build.json
+          set +e
+          eas build --platform android --profile preview --non-interactive --wait --verbose-logs --json > eas-build.json 2>eas-build.stderr
+          BUILD_EXIT=$?
+          cat eas-build.stderr
           cat eas-build.json
+
+          if [ "$BUILD_EXIT" -ne 0 ]; then
+            BUILD_ID="$(jq -r '.[0].id // .id // empty' eas-build.json 2>/dev/null || true)"
+            echo "EAS build command exited with code $BUILD_EXIT"
+            if [ -n "$BUILD_ID" ]; then
+              echo "Inspecting EAS build $BUILD_ID"
+              eas build:view "$BUILD_ID" --json || true
+            fi
+            exit "$BUILD_EXIT"
+          fi
 
       - name: Download APK
         run: |

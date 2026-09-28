@@ -17,7 +17,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '24.x'
-          cache: 'npm'
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -32,7 +31,7 @@ jobs:
         run: convert -background none assets/icon.svg -resize 1024x1024 assets/icon.png
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive --clean

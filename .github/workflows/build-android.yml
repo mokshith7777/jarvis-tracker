@@ -17,49 +17,45 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '24.x'
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Setup Android
+        uses: android-actions/setup-android@v3
 
       - name: Install dependencies
         run: npm install
 
-      - name: Setup Expo and EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Initialize or link EAS project
-        run: eas init --account jarvismok77 --non-interactive
-
       - name: Bundle Android JavaScript preflight
         run: npx expo export --platform android --output-dir .expo-export
 
-      - name: Build Android APK on EAS
+      - name: Generate Android project
+        run: npx expo prebuild --platform android --non-interactive
+
+      - name: Build release APK
         run: |
-          set +e
-          eas build --platform android --profile preview --non-interactive --wait --verbose-logs
-          BUILD_EXIT=$?
-          echo "EAS build exit code: $BUILD_EXIT"
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
 
-          if [ "$BUILD_EXIT" -ne 0 ]; then
-            echo "Recent EAS builds for this commit:"
-            eas build:list               --platform android               --buildProfile preview               --gitCommitHash "$GITHUB_SHA"               --limit 1               --json || true
-            exit "$BUILD_EXIT"
-          fi
-
-      - name: Download APK
+      - name: Verify APK
         run: |
           set -euo pipefail
-          eas build:list             --platform android             --buildProfile preview             --status finished             --gitCommitHash "$GITHUB_SHA"             --limit 1             --json > eas-build-list.json
-          APK_URL="$(jq -er '.[0].artifacts.buildUrl' eas-build-list.json)"
-          curl -fL "$APK_URL" -o jarvis-tracker.apk
-          test -s jarvis-tracker.apk
-          file jarvis-tracker.apk
-          ls -lh jarvis-tracker.apk
+          APK_PATH="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK_PATH"
+          file "$APK_PATH"
+          ls -lh "$APK_PATH"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: jarvis-tracker-apk
-          path: jarvis-tracker.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30

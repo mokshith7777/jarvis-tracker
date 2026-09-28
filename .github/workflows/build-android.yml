@@ -32,7 +32,7 @@ jobs:
 
       - name: Build Android APK on EAS
         run: |
-          eas build --platform android --profile preview --non-interactive --wait --json > eas-build.json
+          eas build --platform android --profile preview --non-interactive --wait --verbose-logs --json > eas-build.json
           cat eas-build.json
 
       - name: Download APK

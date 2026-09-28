@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '24.x'
+          cache: 'npm'
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -31,32 +32,33 @@ jobs:
         run: convert -background none assets/icon.svg -resize 1024x1024 assets/icon.png
 
       - name: Install dependencies
-        run: npm install
-
-      - name: Bundle Android JavaScript preflight
-        run: npx expo export --platform android --output-dir .expo-export
+        run: npm ci
 
       - name: Generate Android project
-        run: npx expo prebuild --platform android --non-interactive
+        run: npx expo prebuild --platform android --non-interactive --clean
 
-      - name: Build installable debug APK
+      - name: Build standalone release APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace --console=plain
+          ./gradlew assembleRelease --no-daemon --stacktrace --console=plain
 
       - name: Verify APK
         run: |
           set -euo pipefail
-          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          APK_PATH="android/app/build/outputs/apk/release/app-release.apk"
           test -s "$APK_PATH"
           file "$APK_PATH"
           ls -lh "$APK_PATH"
+          unzip -l "$APK_PATH" | grep -q "assets/index.android.bundle" || {
+            echo "ERROR: JavaScript bundle is missing from release APK"
+            exit 1
+          }
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: jarvis-tracker-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30

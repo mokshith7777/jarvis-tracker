@@ -8,33 +8,53 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          node-version: '24.x'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: Build Android APK with EAS
+      - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-          command: build --platform android --profile preview --non-interactive --wait-for-finish
-        id: build
 
-      - name: Download build artifact
-        uses: expo/expo-github-action/download@v8
-        with:
-          build-id: ${{ steps.build.outputs.build-id }}
+      - name: Build Android APK on EAS
+        run: |
+          eas build --platform android --profile preview --non-interactive --wait --json > eas-build.json
+          cat eas-build.json
 
-      - name: Upload APK as artifact
+      - name: Download APK
+        run: |
+          set -euo pipefail
+
+          APK_URL="$(jq -r '.[0].artifacts.buildUrl // empty' eas-build.json)"
+
+          if [ -z "$APK_URL" ] || [ "$APK_URL" = "null" ]; then
+            echo "Build output did not include an APK URL. Looking up the finished build for this commit..."
+            eas build:list               --platform android               --buildProfile preview               --status finished               --gitCommitHash "$GITHUB_SHA"               --limit 1               --json > eas-build-list.json
+
+            APK_URL="$(jq -er '.[0].artifacts.buildUrl' eas-build-list.json)"
+          fi
+
+          echo "Downloading APK..."
+          curl -fL "$APK_URL" -o jarvis-tracker.apk
+          test -s jarvis-tracker.apk
+          file jarvis-tracker.apk
+          ls -lh jarvis-tracker.apk
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: jarvis-tracker-apk
-          path: ./android/app/build/outputs/apk/debug/app-debug.apk
+          path: jarvis-tracker.apk
+          if-no-files-found: error
+          retention-days: 30

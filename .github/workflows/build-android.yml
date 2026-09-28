@@ -33,16 +33,16 @@ jobs:
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive
 
-      - name: Build release APK
+      - name: Build installable debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace --console=plain
 
       - name: Verify APK
         run: |
           set -euo pipefail
-          APK_PATH="android/app/build/outputs/apk/release/app-release.apk"
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK_PATH"
           file "$APK_PATH"
           ls -lh "$APK_PATH"
@@ -51,6 +51,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jarvis-tracker-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30

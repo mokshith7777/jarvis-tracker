@@ -30,7 +30,9 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build Android APK
-        run: eas build --platform android --profile preview --non-interactive --no-wait
+        id: build
+        run: |
+          eas build --platform android --profile preview --non-interactive --wait-for-finish
 
       - name: Download build artifact
         uses: expo/expo-github-action/download@v8

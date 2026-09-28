@@ -24,8 +24,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Generate launcher icon PNG
+        run: convert -background none assets/icon.svg -resize 1024x1024 assets/icon.png
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Bundle Android JavaScript preflight
         run: npx expo export --platform android --output-dir .expo-export

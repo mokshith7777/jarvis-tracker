@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '24.x'
+          node-version: '20.x'
 
       - name: Install dependencies
         run: npm install
@@ -29,6 +29,9 @@ jobs:
 
       - name: Initialize or link EAS project
         run: eas init --account jarvismok77 --non-interactive
+
+      - name: Bundle Android JavaScript preflight
+        run: npx expo export --platform android --output-dir .expo-export
 
       - name: Build Android APK on EAS
         run: |

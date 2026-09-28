@@ -3,10 +3,11 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
-yarn.lock
 .pnp/
 .pnp.js
+
+# Keep the dependency lockfile committed for reproducible CI builds.
+# package-lock.json is intentionally NOT ignored.
 
 # Expo
 .expo/
@@ -17,8 +18,8 @@ ios/
 .expo-webpack/
 
 # Misc
-.DS_Thumbs
+.DS_Store
 .env
 *.env
 *.env.*
-! .env.example
+!.env.example

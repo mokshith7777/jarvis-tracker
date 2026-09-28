@@ -27,6 +27,9 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Initialize or link EAS project
+        run: eas init --account jarvismok77 --non-interactive
+
       - name: Build Android APK on EAS
         run: |
           eas build --platform android --profile preview --non-interactive --wait --json > eas-build.json

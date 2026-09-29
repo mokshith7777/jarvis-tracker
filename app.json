@@ -2,17 +2,15 @@
   "expo": {
     "name": "JARVIS TRACKER",
     "slug": "jarvis-tracker",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "jarvistracker",
     "icon": "./assets/icon.png",
-    "plugins": [
-      "expo-router"
-    ],
+    "plugins": ["expo-router"],
     "android": {
       "package": "com.jarvis.tracker",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#07100D"
